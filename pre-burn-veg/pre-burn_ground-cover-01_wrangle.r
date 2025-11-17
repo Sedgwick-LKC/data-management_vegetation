@@ -40,4 +40,43 @@ cov_v01 <- dplyr::full_join(x = cov_list[[1]], y = cov_list[[2]],
 dplyr::glimpse(cov_v01)
 ## tibble::view(cov_v01)
 
+## ----------------------------- ##
+# Fix Column Class Issues ----
+## ----------------------------- ##
+
+# Fix all column class issues
+cov_v02 <- cov_v01 %>% 
+  # Strip year out of date information
+  dplyr::mutate(survey.year = as.numeric(stringr::str_sub(string = survey.date, start = 1, end = 4)),
+    .before = survey.date) %>% 
+  # Rename one column slightly
+  dplyr::rename(x.dist = activity....x_dist) %>% 
+  # Make all columns that can be numeric into numbers
+  dplyr::mutate(dplyr::across(.cols = dplyr::starts_with(c("unit", "plot", "activity")),
+    .fns = as.numeric)) %>% 
+  # Fix date class
+  dplyr::mutate(survey.date = as.Date(stringr::str_sub(string = survey.date, start = 1, end = 10)))
+
+# Check structure
+dplyr::glimpse(cov_v02)
+
+## ----------------------------- ##
+# Export ----
+## ----------------------------- ##
+
+# Make a final object
+cov_v99 <- cov_v02
+
+# Check structure
+dplyr::glimpse(cov_v99)
+
+# Generate a better file name
+(cov_tidyname <- paste0("pre-burn_ground-cover_",
+  min(cov_v99$survey.date, na.rm = T), "_",
+  max(cov_v99$survey.date, na.rm = T), ".csv"))
+
+# Export the ground cover data
+write.csv(x = cov_v99, na = '', row.names = F,
+  file = file.path("data", "tidy", cov_tidyname))
+
 # End ----
