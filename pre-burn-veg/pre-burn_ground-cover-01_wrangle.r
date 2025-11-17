@@ -7,13 +7,17 @@
 
 # Load libraries
 # install.packages("librarian")
-librarian::shelf(tidyverse, readxl)
+librarian::shelf(tidyverse, readxl, tidyxl)
 
 # Get set up
 source("00_setup.r")
 
 # Clear environment
 rm(list = ls()); gc()
+
+# Load custom function(s)
+purrr::walk(.x = dir(path = file.path("tools"), pattern = "fxn_"),
+  .f = ~ source(file = file.path("tools", .x)))
 
 ## ----------------------------- ##
 # Load Data ----
@@ -22,24 +26,18 @@ rm(list = ls()); gc()
 # Define file path to desired data
 cov_file <- file.path("data", "raw", "Ground-Cover-Pre-Burn.xlsx")
 
-# Check existing sheets in the data
-(cov_sheets <- readxl::excel_sheets(path = cov_file))
-
-# Read in both
-cov_sheet1 <- readxl::read_excel(path = cov_file, sheet = cov_sheets[1], col_type = "text")
-cov_sheet2 <- readxl::read_excel(path = cov_file, sheet = cov_sheets[2], col_type = "text")
+# Read in the sheets of that file
+cov_list <- read_wildnote(wn_path = cov_file)
 
 # Check structure
-dplyr::glimpse(cov_sheet1)
-dplyr::glimpse(cov_sheet2)
+dplyr::glimpse(cov_list)
 
 # Join by shared columns
-cov_v01 <- dplyr::left_join(x = cov_sheet2, y = cov_sheet1,
-  by = c("Survey ID", "Survey Date", "User"))
+cov_v01 <- dplyr::full_join(x = cov_list[[1]], y = cov_list[[2]],
+  by = c("survey.id", "survey.date", "user"))
 
 # Check that out
 dplyr::glimpse(cov_v01)
 ## tibble::view(cov_v01)
-
 
 # End ----
