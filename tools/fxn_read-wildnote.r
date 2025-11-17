@@ -44,7 +44,9 @@ read_wildnote <- function(wn_path = NULL){
       dplyr::mutate(id.actual = gsub(pattern = "\"|\\\\", replacement = "", id.num), 
         .before = survey.id) %>% 
       dplyr::select(-survey.id, -id.num) %>% 
-      dplyr::rename(survey.id = id.actual)
+      dplyr::rename(survey.id = id.actual) %>% 
+      # Remove any columns that are completely empty
+      dplyr::select(-dplyr::where(fn = ~ all(is.na(.) | nchar(.) == 0)))
 
     # Add to output list
     out_list[[wn_tab]] <- wn_v02
