@@ -38,7 +38,7 @@ read_wildnote <- function(wn_path = NULL){
       dplyr::select(-row) %>% 
       stats::setNames(nm = .[1,]) %>% 
       dplyr::filter(`Survey ID` != "Survey ID") %>% 
-      dplyr::rename_with(.fn = ~ tolower(gsub(pattern = " |-|\\(|\\)|\\?", replacement = ".", x = .))) %>% 
+      dplyr::rename_with(.fn = ~ tolower(gsub(pattern = " |-|\\(|\\)|\\?|\\/", replacement = ".", x = .))) %>% 
       # Extract useable survey ID numbers
       dplyr::mutate(id.num = stringr::str_extract(string = survey.id, pattern = "\"[[:digit:]]{2,20}\"")) %>% 
       dplyr::mutate(id.actual = gsub(pattern = "\"|\\\\", replacement = "", id.num), 
