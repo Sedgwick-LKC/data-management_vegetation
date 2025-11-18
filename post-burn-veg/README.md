@@ -4,4 +4,4 @@ Surveys of the vegetation communities after a burn is necessary to be able to qu
 
 ## Script Explanations
 
-- 
+- Current scripts tidy post-burn (A) ground cover, (B) oak survey, and (C) TREX shrub / fire severity data respectively
