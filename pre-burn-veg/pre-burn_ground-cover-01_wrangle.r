@@ -50,7 +50,7 @@ cov_v02 <- cov_v01 %>%
   dplyr::mutate(survey.year = as.numeric(stringr::str_sub(string = survey.date, start = 1, end = 4)),
     .before = survey.date) %>% 
   # Rename one column slightly
-  dplyr::rename(x.dist = activity....x_dist) %>% 
+  dplyr::rename(transect.side = activity....x_dist) %>% 
   # Make all columns that can be numeric into numbers
   dplyr::mutate(dplyr::across(.cols = dplyr::starts_with(c("unit", "plot", "activity")),
     .fns = as.numeric)) %>% 
@@ -61,11 +61,42 @@ cov_v02 <- cov_v01 %>%
 dplyr::glimpse(cov_v02)
 
 ## ----------------------------- ##
+# Remove Bad Rows ----
+## ----------------------------- ##
+
+# Drop unwanted rows
+cov_v03 <- cov_v02 %>% 
+  dplyr::filter(!is.na(activity....distance_.meter) & !is.na(transect.side))
+
+# How many rows lost (should be few)?
+nrow(cov_v02) - nrow(cov_v03)
+
+# Check structure
+dplyr::glimpse(cov_v03)
+
+## ----------------------------- ##
+# Streamline Column Names ----
+## ----------------------------- ##
+
+# Make the column names simpler / more informative
+cov_v04 <- cov_v03 %>% 
+  # Manual renaming
+  dplyr::rename(distance_m = activity....distance_.meter) %>% 
+  # Algorithmic renaming
+  dplyr::rename_with(.fn = ~ gsub(pattern = "activity....", replacement = "", x = .)) %>% 
+  dplyr::rename_with(.fn = ~ gsub(pattern = "_", replacement = ".", x = .)) %>% 
+  dplyr::rename_with(.cols = leaf.litter:perennial.grass,
+    .fn = ~ paste0(., "_percent.cover"))
+
+# Check structure
+dplyr::glimpse(cov_v04)
+
+## ----------------------------- ##
 # Export ----
 ## ----------------------------- ##
 
 # Make a final object
-cov_v99 <- cov_v02
+cov_v99 <- cov_v04
 
 # Check structure
 dplyr::glimpse(cov_v99)
