@@ -49,6 +49,8 @@ dplyr::glimpse(nps_v01)
 
 # Do needed repairs to shape
 nps_v02 <- nps_v01 %>% 
+  # Add a row number
+  dplyr::mutate(row.num = 1:nrow(.), .after = survey.date) %>% 
   # Do some standardizing of old column names
   dplyr::rename_with(.fn = ~ gsub("plot_data_", "", x = .)) %>% 
   dplyr::rename_with(.fn = ~ gsub(".cover", "_cover", x = .)) %>% 
@@ -59,14 +61,20 @@ nps_v02 <- nps_v01 %>%
   tidyr::separate_wider_delim(cols = name, delim = "__",
     names = c("distance_m", "xx"), cols_remove = T) %>% 
   tidyr::separate_wider_delim(cols = xx, delim = "_", 
-    too_few = "align_start", names = c("spp.num", "yy")) %>%
-  # Separate species names from cover
-  dplyr::mutate(species = ifelse(yy == "cover",
-      yes = dplyr::lag(value), no = NA),
-    cover.range_ordinal = ifelse(yy == "cover", yes = value, no = NA)) %>% 
+    too_few = "align_start", names = c("spp.num", "yy")) %>% 
+  # Collapse rows (necessary to reclaim desired data shape)
+  dplyr::select(-yy) %>% 
+  dplyr::group_by(dplyr::across(dplyr::all_of(setdiff(x = names(.),
+    y = c("value"))))) %>% 
+  dplyr::summarize(sp.cov = paste(unique(value), collapse = "___"),
+    .groups = "keep") %>% 
+  dplyr::ungroup() %>% 
+  # Split the combination that we just made to get better columns
+  dplyr::filter(sp.cov != "NA") %>% 
+  tidyr::separate_wider_delim(cols = sp.cov, delim = "___",
+    names = c("species", "cover.range_ordinal")) %>% 
   # Do some light housekeeping
-  dplyr::select(-yy, -value, -spp.num) %>% 
-  dplyr::filter(is.na(species) != T)
+  dplyr::select(-spp.num)
   
 # Check structure
 dplyr::glimpse(nps_v02)
