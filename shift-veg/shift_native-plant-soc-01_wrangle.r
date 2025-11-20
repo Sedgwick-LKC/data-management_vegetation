@@ -74,7 +74,7 @@ nps_v02 <- nps_v01 %>%
   tidyr::separate_wider_delim(cols = sp.cov, delim = "___",
     names = c("species", "cover.range_ordinal")) %>% 
   # Do some light housekeeping
-  dplyr::select(-spp.num)
+  dplyr::select(-spp.num, -row.num)
   
 # Check structure
 dplyr::glimpse(nps_v02)
@@ -98,7 +98,10 @@ nps_v03 <- nps_v02 %>%
   dplyr::mutate(cover_percent = dplyr::case_when(
     cover.range_ordinal == "<1%" ~ 0.5,
     cover.range_ordinal == "1-10%" ~ 5.5,
+    cover.range_ordinal == "10-25%" ~ 17.5,
+    cover.range_ordinal == "25-50%" ~ 37.5,
     cover.range_ordinal == "50-75%" ~ 62.5,
+    cover.range_ordinal == "75-100%" ~ 87.5,
     T ~ NA))
 
 # Check structure
